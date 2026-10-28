@@ -1,0 +1,622 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Fortaleza a Dois</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: uma coluna estreita, uma tela por vez. Motivo: sol se pondo sobre o mar.
+   Cores: --a e --b identificam cada pessoa; --accent marca o que os dois curtem. */
+:root {
+  --bg: #F1F6F5; --surface: #FFFFFF; --ink: #0C2B3A; --muted: #4A6572; --line: #D3E1E3; --soft: #E6F0F0;
+  --a: #0B7580; --b: #6D4AA8; --on-pc: #FFFFFF;
+  --accent: #C93F1D; --on-accent: #FFFFFF; --sun: #F2A93B;
+  --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #08202B; --surface: #0E2E3B; --ink: #E7F2F1; --muted: #9FBAC1; --line: #1F4352; --soft: #12394A;
+    --a: #43C6CF; --b: #BBA1EE; --on-pc: #07222B; --accent: #FF8F6B; --on-accent: #2A0F06; --sun: #F2B24A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #08202B; --surface: #0E2E3B; --ink: #E7F2F1; --muted: #9FBAC1; --line: #1F4352; --soft: #12394A;
+  --a: #43C6CF; --b: #BBA1EE; --on-pc: #07222B; --accent: #FF8F6B; --on-accent: #2A0F06; --sun: #F2B24A;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font: 400 16px/1.55 var(--font-body);
+  padding-block: 20px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 720px; margin: 0 auto; display: grid; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2.3rem, 9vw, 3.6rem); font-weight: 800; }
+h2 { font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 700; }
+h3 { font-size: 1.1rem; font-weight: 700; }
+p { margin: 0; }
+.eyebrow { font-size: .78rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.lead { font-size: 1.1rem; max-width: 52ch; color: var(--ink); }
+.muted { color: var(--muted); }
+.fine { font-size: .875rem; color: var(--muted); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+[tabindex="-1"]:focus { outline: none; }
+
+.hero { display: grid; gap: 14px; }
+.motif { width: min(100%, 340px); height: auto; display: block; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px; display: grid; gap: 16px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.row > * { min-width: 0; }
+
+.btn { font: inherit; font-weight: 600; padding: .75rem 1.25rem; min-height: 46px; border-radius: 12px; border: 1.5px solid transparent; cursor: pointer; transition: transform .12s ease; }
+.btn:active { transform: scale(.98); }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+.btn.small { min-height: 38px; padding: .4rem .9rem; font-size: .9rem; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.stepper { display: inline-flex; align-items: center; border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; }
+.stepper button { font: inherit; font-size: 1.25rem; width: 44px; height: 44px; border: 0; background: var(--soft); color: var(--ink); cursor: pointer; }
+.stepper output { min-width: 44px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.how { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; counter-reset: s; }
+.how li { counter-increment: s; display: grid; grid-template-columns: 2rem 1fr; gap: 10px; align-items: start; }
+.how li::before { content: counter(s); font-family: var(--font-display); font-weight: 800; color: var(--accent); font-size: 1.4rem; line-height: 1.2; }
+
+/* quiz */
+.p0 { --pc: var(--a); } .p1 { --pc: var(--b); }
+.who { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: .9rem; color: var(--muted); }
+.who .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--pc); }
+.bar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--pc); transition: width .25s ease; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 14px; }
+.qtitle { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.4rem, 5vw, 1.9rem); line-height: 1.15; padding: 0; display: block; text-wrap: balance; }
+.opts { display: flex; flex-wrap: wrap; gap: 10px; }
+.opt { font: inherit; text-align: left; padding: .7rem 1rem; min-height: 46px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; max-width: 100%; }
+.opt[aria-pressed="true"] { background: var(--pc); border-color: var(--pc); color: var(--on-pc); font-weight: 600; }
+.text-in { font: inherit; font-size: 1.15rem; width: 100%; padding: .8rem 1rem; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); }
+.nav { display: flex; justify-content: space-between; gap: 12px; }
+
+textarea { font: .85rem/1.4 ui-monospace, Menlo, monospace; width: 100%; min-height: 84px; padding: .6rem; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); color: var(--ink); resize: vertical; }
+details { border-top: 1px solid var(--line); padding-top: 14px; }
+summary { cursor: pointer; font-weight: 600; }
+details > div { display: grid; gap: 10px; margin-top: 12px; }
+.err { color: var(--accent); font-size: .9rem; font-weight: 600; }
+
+/* resultados */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: .2rem .7rem; border-radius: 999px; font-size: .875rem; border: 1px solid var(--line); background: var(--soft); }
+.chip.a { border-color: var(--a); } .chip.b { border-color: var(--b); } .chip.both { border-color: var(--accent); }
+.sumrow { display: grid; gap: 6px; }
+.sumrow .lbl { font-size: .8rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.tab { font: inherit; font-weight: 600; padding: .5rem 1rem; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; white-space: nowrap; min-height: 42px; }
+.tab[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.slot { display: grid; grid-template-columns: 5.2rem minmax(0, 1fr); gap: 12px; align-items: start; }
+.slotlabel { font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 16px; }
+.pcard { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 8px; min-width: 0; }
+.pcard.free { background: transparent; border-style: dashed; color: var(--muted); }
+.ptop { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.ptop h3 { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; }
+.badge { font-size: .75rem; font-weight: 600; padding: .15rem .6rem; border-radius: 999px; white-space: nowrap; border: 1px solid var(--line); background: var(--soft); color: var(--ink); }
+.badge.both { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.badge.a { background: var(--a); border-color: var(--a); color: var(--on-pc); }
+.badge.b { background: var(--b); border-color: var(--b); color: var(--on-pc); }
+.meta { font-size: .85rem; color: var(--muted); }
+.acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; }
+.section { display: grid; gap: 12px; }
+.seg { display: flex; gap: 8px; flex-wrap: wrap; }
+.mini { display: grid; gap: 10px; }
+.mini .pcard { padding: 12px 14px; }
+.note { font-size: .875rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+#toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--ink); color: var(--bg); padding: .6rem 1.1rem; border-radius: 12px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 20; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 520px) {
+  .slot { grid-template-columns: 1fr; gap: 6px; }
+  .slotlabel { padding-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main class="wrap" id="app"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- Dados ---------- */
+const TAGLABEL = {
+  praia: 'praia', natureza: 'natureza', historia: 'história', arte: 'arte e cultura', compras: 'artesanato e compras',
+  noite: 'vida noturna', aventura: 'aventura', mar: 'frutos do mar', regional: 'comida regional', doce: 'doces e cafés',
+  petisco: 'petiscos e cerveja', intl: 'cozinhas do mundo', romantico: 'clima romântico', foto: 'lugares para foto',
+  relax: 'relaxar', animado: 'clima animado', local: 'experiência local'
+};
+const SLOTLABEL = { manha: 'Manhã', almoco: 'Almoço', tarde: 'Tarde', lanche: 'Lanche', jantar: 'Jantar', noite: 'Noite', dia: 'Dia inteiro' };
+const ZONENAME = { centro: 'Centro', iracema: 'Praia de Iracema', beira: 'Beira-Mar', futuro: 'Mucuripe e Praia do Futuro', aldeota: 'Aldeota, Cocó e Papicu', fora: 'Bate-volta' };
+const ZPOS = { centro: 0, iracema: 1, beira: 2, futuro: 3, aldeota: 3, fora: 9 };
+
+const Q = [
+  { id: 'pace', type: 'single', title: 'Qual é o seu ritmo ideal de passeio?', opts: [
+    ['calmo', 'Calmo, com poucas paradas e sem correria'], ['medio', 'Equilibrado, um pouco de tudo'], ['agito', 'Agitado, quero aproveitar cada hora']] },
+  { id: 'interests', type: 'multi', title: 'O que você mais curte conhecer?', hint: 'Marque quantos quiser.', opts: [
+    ['praia', 'Praias e beira-mar'], ['natureza', 'Natureza e trilhas'], ['historia', 'História e arquitetura'], ['arte', 'Arte, museus e cultura'],
+    ['compras', 'Artesanato e compras'], ['noite', 'Vida noturna e música'], ['aventura', 'Aventura e esportes']] },
+  { id: 'food', type: 'multi', title: 'E para comer, o que te agrada?', hint: 'Marque quantos quiser.', opts: [
+    ['mar', 'Frutos do mar'], ['regional', 'Comida regional cearense'], ['doce', 'Sorvete, doces e cafés'], ['petisco', 'Petiscos e cerveja gelada'], ['intl', 'Cozinhas do mundo (japonesa, italiana…)']] },
+  { id: 'mood', type: 'multi', title: 'Que clima você quer nesses dias?', hint: 'Marque quantos quiser.', opts: [
+    ['romantico', 'Romântico'], ['foto', 'Lugares bonitos para foto'], ['relax', 'Relaxar, sem pressa'], ['animado', 'Animado, com gente e música'], ['local', 'Experiência local e autêntica']] },
+  { id: 'time', type: 'multi', title: 'Em que horas do dia você rende mais?', opts: [['manha', 'Manhã'], ['tarde', 'Tarde'], ['noite', 'Noite']] },
+  { id: 'budget', type: 'single', title: 'Quanto você topa gastar por passeio ou refeição?', opts: [
+    ['1', 'Prefiro economizar'], ['2', 'Um valor moderado'], ['3', 'Posso gastar mais para algo especial']] },
+  { id: 'avoid', type: 'multi', title: 'O que você prefere evitar?', hint: 'Esses pontos pesam na escolha dos lugares.', opts: [
+    ['lotado', 'Lugares muito cheios'], ['sol', 'Sol forte o dia todo'], ['caminhada', 'Caminhar muito'], ['longe', 'Deslocamentos longos'], ['nada', 'Nada, topo tudo']] }
+];
+const STEPS = [{ id: 'name', type: 'text' }, ...Q];
+
+// k: v = visitar, c = comer | z: zona ('*' serve em qualquer lugar) | s: horários | t: gostos | c: custo 1-3 | f: pontos que alguns preferem evitar
+const PLACES = [
+  { id: 'ponte', n: 'Ponte dos Ingleses e pôr do sol', b: 'Praia de Iracema', z: 'iracema', k: 'v', s: ['tarde'], t: ['praia', 'romantico', 'foto'], c: 1, f: ['lotado'],
+    d: 'Chegue uns 40 minutos antes do pôr do sol (por volta das 17h30) para pegar um bom lugar. A Estátua de Iracema Guardiã fica nas redondezas.' },
+  { id: 'dragao', n: 'Centro Dragão do Mar de Arte e Cultura', b: 'Praia de Iracema', z: 'iracema', k: 'v', s: ['tarde', 'noite'], t: ['arte', 'noite', 'animado', 'foto'], c: 1, f: [],
+    d: 'Reúne museus, cinema e planetário, e as ruas ao redor têm bares e restaurantes. Veja a programação do dia.' },
+  { id: 'feirinha', n: 'Feirinha da Beira-Mar', b: 'Meireles', z: 'beira', k: 'v', s: ['noite'], t: ['compras', 'local', 'animado'], c: 1, f: ['lotado'],
+    d: 'Artesanato, rendas e lembrancinhas. Funciona no fim da tarde e à noite. Pergunte o preço antes e leve dinheiro trocado.' },
+  { id: 'mercado', n: 'Mercado Central', b: 'Centro', z: 'centro', k: 'v', s: ['manha', 'tarde'], t: ['compras', 'local', 'foto'], c: 1, f: ['lotado'],
+    d: 'Castanha de caju, rendas, redes e cachaça em um prédio de vários andares. Vá antes das 16h e confira o horário, que costuma ser menor aos domingos.' },
+  { id: 'catedral', n: 'Catedral Metropolitana', b: 'Centro', z: 'centro', k: 'v', s: ['manha', 'tarde'], t: ['historia', 'foto', 'arte'], c: 1, f: [],
+    d: 'Igreja neogótica de visual marcante. Fica ao lado do Mercado Central, então os dois combinam bem.' },
+  { id: 'theatro', n: 'Theatro José de Alencar', b: 'Centro', z: 'centro', k: 'v', s: ['manha', 'tarde'], t: ['historia', 'arte', 'foto'], c: 1, f: [],
+    d: 'Teatro inaugurado em 1910, com estrutura de ferro e vitrais. Pergunte sobre visitas guiadas e veja se há espetáculo.' },
+  { id: 'passeio', n: 'Passeio Público', b: 'Centro', z: 'centro', k: 'v', s: ['manha', 'tarde'], t: ['historia', 'relax', 'natureza'], c: 1, f: ['caminhada'],
+    d: 'Praça histórica do século XIX, perto do Forte. Boa para uma volta tranquila.' },
+  { id: 'forte', n: 'Forte de Nossa Senhora da Assunção', b: 'Centro', z: 'centro', k: 'v', s: ['manha', 'tarde'], t: ['historia', 'foto'], c: 1, f: [],
+    d: 'O forte que deu origem à cidade. Confira os dias e horários de visitação antes de ir.' },
+  { id: 'museu', n: 'Museu do Ceará', b: 'Centro', z: 'centro', k: 'v', s: ['manha', 'tarde'], t: ['historia', 'arte'], c: 1, f: [],
+    d: 'Acervo sobre a história e a cultura do estado, em prédio histórico do Centro.' },
+  { id: 'coco', n: 'Parque do Cocó', b: 'Cocó', z: 'aldeota', k: 'v', s: ['manha', 'tarde'], t: ['natureza', 'relax', 'foto'], c: 1, f: ['sol', 'caminhada'],
+    d: 'Grande parque urbano de mangue e restinga, com trilhas e passarelas. Vá cedo, antes do calor, com repelente e água.' },
+  { id: 'beirawalk', n: 'Caminhada ou bike na Avenida Beira-Mar', b: 'Meireles', z: 'beira', k: 'v', s: ['manha', 'tarde', 'noite'], t: ['praia', 'relax', 'foto'], c: 1, f: ['caminhada'],
+    d: 'Calçadão com ciclovia e quiosques de água de coco. Fica ótimo no fim da tarde.' },
+  { id: 'futuro', n: 'Dia de praia na Praia do Futuro', b: 'Praia do Futuro', z: 'futuro', k: 'v', s: ['manha', 'tarde'], t: ['praia', 'animado', 'relax'], c: 2, f: ['sol', 'lotado'],
+    d: 'Mar mais aberto e barracas de apoio. Fins de semana lotam, e o fim da tarde é mais tranquilo.' },
+  { id: 'jangada', n: 'Passeio de jangada em Mucuripe', b: 'Mucuripe', z: 'futuro', k: 'v', s: ['manha', 'tarde'], t: ['praia', 'aventura', 'local', 'romantico'], c: 2, f: ['sol'],
+    d: 'Saídas pela praia de Mucuripe. Combine valor e duração antes de embarcar e use protetor solar.' },
+  { id: 'riomar', n: 'RioMar Fortaleza', b: 'Papicu', z: 'aldeota', k: 'v', s: ['tarde', 'noite'], t: ['compras', 'relax'], c: 2, f: [],
+    d: 'Shopping grande, com cinema e praça de alimentação. Boa opção para dia de chuva.' },
+  { id: 'cinesl', n: 'Cine São Luiz e Praça do Ferreira', b: 'Centro', z: 'centro', k: 'v', s: ['tarde', 'noite'], t: ['historia', 'arte', 'foto'], c: 1, f: [],
+    d: 'Cinema histórico, aberto em 1958 e restaurado. Veja a programação do dia.' },
+  { id: 'tabajaras', n: 'Música ao vivo na Rua dos Tabajaras', b: 'Praia de Iracema', z: 'iracema', k: 'v', s: ['noite'], t: ['noite', 'animado', 'local', 'petisco'], c: 2, f: ['lotado'],
+    d: 'Rua com bares e música ao vivo. Fins de semana são os dias mais movimentados.' },
+
+  { id: 'cumbuco', n: 'Cumbuco: dunas, buggy e kitesurf', b: 'Caucaia', z: 'fora', k: 'v', s: ['dia'], t: ['praia', 'aventura', 'animado', 'foto'], c: 3, f: ['sol', 'longe'],
+    d: 'A cerca de 30 km de Fortaleza. Dá para fazer passeio de buggy pelas dunas e ver o kitesurf. Combine o valor antes.' },
+  { id: 'beachpark', n: 'Beach Park', b: 'Aquiraz', z: 'fora', k: 'v', s: ['dia'], t: ['aventura', 'animado'], c: 3, f: ['sol', 'lotado', 'longe'],
+    d: 'Parque aquático a cerca de 25 km do centro. Ingressos e horários variam, então vale conferir e comprar com antecedência.' },
+  { id: 'morro', n: 'Morro Branco e Praia das Fontes', b: 'Beberibe', z: 'fora', k: 'v', s: ['dia'], t: ['natureza', 'foto', 'aventura', 'romantico'], c: 2, f: ['sol', 'longe'],
+    d: 'Falésias coloridas e labirintos de areia, a cerca de 85 km. Reserve o dia inteiro e leve água e protetor.' },
+  { id: 'canoa', n: 'Canoa Quebrada', b: 'Aracati', z: 'fora', k: 'v', s: ['dia'], t: ['praia', 'animado', 'foto', 'noite'], c: 2, f: ['sol', 'longe'],
+    d: 'A cerca de 165 km. Funciona como bate-volta longo ou com uma noite por lá.' },
+
+  { id: 'tapioca', n: 'Tapioca e cuscuz com queijo coalho', b: 'Vários bairros', z: '*', k: 'c', s: ['lanche', 'jantar'], t: ['regional', 'local'], c: 1, f: [],
+    d: 'Experimente tapioca com queijo coalho ou carne de sol. É rápido e barato, e muitas tapiocarias abrem no fim da tarde.', q: 'tapiocaria Fortaleza' },
+  { id: 'mpeixes', n: 'Mercado dos Peixes', b: 'Mucuripe', z: 'futuro', k: 'c', s: ['almoco'], t: ['mar', 'regional', 'local'], c: 2, f: ['lotado'],
+    d: 'Escolha o peixe ou o camarão na banca e peça para preparar em um dos restaurantes ao lado. Confirme o preço antes.', q: 'Mercado dos Peixes Mucuripe Fortaleza' },
+  { id: 'barracas', n: 'Barracas da Praia do Futuro', b: 'Praia do Futuro', z: 'futuro', k: 'c', s: ['almoco'], t: ['mar', 'regional', 'animado', 'praia'], c: 2, f: ['sol', 'lotado'],
+    d: 'Caranguejo, camarão e peixe frito com o mar na frente, e várias têm música ao vivo. Crocobeach e Chico do Caranguejo são nomes conhecidos, mas confira se estão abertas.', q: 'barracas Praia do Futuro Fortaleza' },
+  { id: 'cocobambu', n: 'Coco Bambu', b: 'Várias unidades', z: '*', k: 'c', s: ['almoco', 'jantar'], t: ['mar', 'regional', 'romantico'], c: 3, f: [],
+    d: 'Rede cearense conhecida por frutos do mar em porções para dividir. Reserve em fins de semana.', q: 'Coco Bambu Fortaleza' },
+  { id: 'estoril', n: 'Estoril', b: 'Praia de Iracema', z: 'iracema', k: 'c', s: ['almoco', 'lanche', 'jantar'], t: ['historia', 'foto', 'romantico', 'petisco'], c: 2, f: [],
+    d: 'Casarão histórico da Praia de Iracema com bar e restaurante. Confirme se está funcionando antes de ir.', q: 'Estoril Praia de Iracema Fortaleza' },
+  { id: 'varjota', n: 'Varjota, polo gastronômico', b: 'Varjota', z: 'aldeota', k: 'c', s: ['almoco', 'jantar'], t: ['intl', 'regional', 'petisco', 'animado'], c: 2, f: [],
+    d: 'Bairro com muitos restaurantes e bares. Dá para chegar e escolher no local.', q: 'Varjota Fortaleza restaurantes' },
+  { id: 'dragaobar', n: 'Petiscos e cerveja perto do Dragão do Mar', b: 'Praia de Iracema', z: 'iracema', k: 'c', s: ['jantar'], t: ['petisco', 'noite', 'animado', 'local'], c: 2, f: [],
+    d: 'Bares e restaurantes ao redor do Dragão do Mar, muitos com música ao vivo.', q: 'bares perto do Dragão do Mar Fortaleza' },
+  { id: 'japa', n: 'Culinária japonesa', b: 'Vários bairros', z: '*', k: 'c', s: ['almoco', 'jantar'], t: ['intl', 'romantico'], c: 2, f: [],
+    d: 'Fortaleza tem muitas opções, de rodízio a à la carte. Escolha uma bem avaliada perto de onde estiverem.', q: 'restaurante japonês Fortaleza' },
+  { id: 'massas', n: 'Massas e pizzas', b: 'Vários bairros', z: '*', k: 'c', s: ['almoco', 'jantar'], t: ['intl', 'romantico'], c: 2, f: [],
+    d: 'Boa pedida para um jantar sem pressa. Procure uma cantina bem avaliada perto de vocês.', q: 'cantina italiana Fortaleza' },
+  { id: 'sorvete', n: 'Sorveteria com sabores regionais', b: 'Vários bairros', z: '*', k: 'c', s: ['lanche'], t: ['doce', 'local'], c: 1, f: [],
+    d: 'Procure sabores como cajá, tapioca e castanha de caju.', q: 'sorveteria Fortaleza' },
+  { id: 'cafe', n: 'Café e doces', b: 'Vários bairros', z: '*', k: 'c', s: ['lanche'], t: ['doce', 'relax', 'foto'], c: 2, f: [],
+    d: 'Uma pausa com café, bolo e ar-condicionado. Escolha uma cafeteria bem avaliada por perto.', q: 'cafeteria Fortaleza' },
+  { id: 'lagosta', n: 'Lagosta e camarão', b: 'Mucuripe e Praia do Futuro', z: 'futuro', k: 'c', s: ['almoco', 'jantar'], t: ['mar', 'romantico', 'regional'], c: 3, f: [],
+    d: 'A lagosta é um clássico do litoral cearense. Pergunte o preço por peso antes de pedir.', q: 'restaurante lagosta Mucuripe Fortaleza' },
+  { id: 'carnesol', n: 'Baião de dois e carne de sol', b: 'Vários bairros', z: '*', k: 'c', s: ['almoco'], t: ['regional', 'local'], c: 1, f: [],
+    d: 'Prato típico do Nordeste, com paçoca e macaxeira. Procure restaurantes de comida regional.', q: 'restaurante comida regional cearense Fortaleza' },
+  { id: 'quiosque', n: 'Água de coco nos quiosques da Beira-Mar', b: 'Meireles', z: 'beira', k: 'c', s: ['lanche'], t: ['praia', 'relax', 'local'], c: 1, f: [],
+    d: 'Uma pausa simples com vista para o mar.', q: 'quiosque água de coco Avenida Beira Mar Fortaleza' },
+  { id: 'rooftop', n: 'Bar com vista para o mar', b: 'Meireles', z: 'beira', k: 'c', s: ['jantar'], t: ['romantico', 'foto', 'petisco'], c: 3, f: [],
+    d: 'Hotéis e prédios da Beira-Mar têm bares no alto. Escolha um bem avaliado e reserve se puder.', q: 'rooftop bar Beira Mar Fortaleza' },
+  { id: 'burger', n: 'Hamburguer artesanal', b: 'Vários bairros', z: '*', k: 'c', s: ['almoco', 'jantar'], t: ['petisco', 'animado'], c: 2, f: [],
+    d: 'Para um programa descontraído. Procure uma hamburgueria bem avaliada por perto.', q: 'hamburgueria artesanal Fortaleza' }
+];
+
+/* ---------- Estado ---------- */
+const KEY = 'fortaleza-a-dois-v1';
+const blank = () => ({ name: '', pace: null, interests: [], food: [], mood: [], time: [], budget: null, avoid: [] });
+const S = { screen: 'intro', days: 3, cur: 0, step: 0, people: [blank(), blank()], plan: null, seed: 0, day: 0, filter: 'all', fallback: '' };
+let D = [];
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const list = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1];
+const L = t => TAGLABEL[t] || t;
+const mapUrl = p => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.q || (p.n + ', Fortaleza'));
+const costLabel = c => 'R' + '$'.repeat(c);
+
+function stepValid(st, p) {
+  if (st.id === 'name') return p.name.trim().length > 0;
+  const v = p[st.id];
+  return st.type === 'single' ? v !== null && v !== '' : v.length > 0;
+}
+const complete = p => STEPS.every(st => stepValid(st, p));
+
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ people: S.people, days: S.days, seed: S.seed })); } catch (e) {} }
+function loadSaved() {
+  try {
+    const r = JSON.parse(localStorage.getItem(KEY));
+    if (r && Array.isArray(r.people) && r.people.length === 2) {
+      const ppl = r.people.map(o => sanitize(o));
+      if (ppl.every(Boolean)) return { people: ppl, days: Math.min(5, Math.max(1, +r.days || 3)), seed: +r.seed || 0 };
+    }
+  } catch (e) {}
+  return null;
+}
+function sanitize(o) {
+  if (!o || typeof o !== 'object') return null;
+  const p = blank();
+  p.name = String(o.name || '').slice(0, 40).trim();
+  for (const q of Q) {
+    const ok = q.opts.map(x => x[0]);
+    if (q.type === 'single') p[q.id] = ok.includes(o[q.id]) ? o[q.id] : null;
+    else p[q.id] = Array.isArray(o[q.id]) ? o[q.id].filter(v => ok.includes(v)) : [];
+  }
+  return complete(p) ? p : null;
+}
+const encode = p => 'FDD1:' + btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(p))));
+function decode(s) {
+  try {
+    s = String(s).trim();
+    if (!s.startsWith('FDD1:')) return null;
+    const bytes = Uint8Array.from(atob(s.slice(5)), c => c.charCodeAt(0));
+    return sanitize(JSON.parse(new TextDecoder().decode(bytes)));
+  } catch (e) { return null; }
+}
+
+/* ---------- Motor de combinação ---------- */
+function derive(p) {
+  return {
+    name: p.name.trim(), pace: { calmo: 0, medio: 1, agito: 2 }[p.pace],
+    tags: new Set([...p.interests, ...p.food, ...p.mood]), time: p.time, budget: +p.budget,
+    avoid: p.avoid.filter(a => a !== 'nada')
+  };
+}
+function pscore(P, pl) {
+  let m = 0; for (const t of pl.t) if (P.tags.has(t)) m++;
+  let s = Math.min(1, m / 2);
+  if (pl.f.some(f => P.avoid.includes(f))) s -= 0.45;
+  if (pl.c > P.budget) s -= 0.2 * (pl.c - P.budget);
+  return Math.max(0, s);
+}
+function pair(pl) {
+  const a = pscore(D[0], pl), b = pscore(D[1], pl);
+  return { a, b, score: 0.6 * Math.min(a, b) + 0.4 * (a + b) / 2 };
+}
+const slotBonus = slot => ['manha', 'tarde', 'noite'].includes(slot) ? D.reduce((n, d) => n + (d.time.includes(slot) ? 0.05 : 0), 0) : 0;
+function zdist(a, b) { if (a === b) return 0; return Math.abs(ZPOS[a] - ZPOS[b]) <= 1 ? 1 : 2; }
+function jitter(id) {
+  if (!S.seed) return 0;
+  let h = (S.seed * 2654435761) >>> 0;
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619) >>> 0;
+  return (h % 1000) / 1000 * 0.14;
+}
+function candidates(slot, used) {
+  const kind = ['manha', 'tarde', 'noite'].includes(slot) ? 'v' : 'c';
+  return PLACES.filter(p => p.k === kind && p.s.includes(slot) && !used.has(p.id));
+}
+function rankFor(slot, ctx, used) {
+  return candidates(slot, used).map(p => {
+    let sc = pair(p).score + slotBonus(slot) + jitter(p.id);
+    if (ctx.zone && p.z !== '*') sc += [0.25, 0.1, 0][zdist(ctx.zone, p.z)];
+    sc -= 0.06 * p.t.filter(t => ctx.tags[t]).length;
+    return { p, sc };
+  }).sort((x, y) => y.sc - x.sc);
+}
+function generate() {
+  const used = new Set(), days = [];
+  const pace = Math.round((D[0].pace + D[1].pace) / 2);
+  const wantLanche = D.some(d => d.tags.has('doce'));
+  const noFar = D.some(d => d.avoid.includes('longe'));
+  const trips = {};
+  if (S.days >= 2 && !noFar) {
+    const max = S.days >= 4 ? 2 : 1;
+    PLACES.filter(p => p.s[0] === 'dia').map(p => ({ p, sc: pair(p).score + jitter(p.id) }))
+      .filter(x => x.sc >= 0.3).sort((x, y) => y.sc - x.sc).slice(0, max)
+      .forEach((x, i) => { trips[[1, 3][i]] = x.p; });
+  }
+  for (let d = 0; d < S.days; d++) {
+    const items = [], ctx = { zone: null, tags: {} }, today = new Set();
+    let slots;
+    if (trips[d]) {
+      used.add(trips[d].id); items.push({ slot: 'dia', place: trips[d] }); slots = ['jantar'];
+    } else {
+      slots = pace === 0 ? ['manha', 'almoco', 'jantar'] : pace === 1 ? ['manha', 'almoco', 'tarde', 'jantar'] : ['manha', 'almoco', 'tarde', 'jantar', 'noite'];
+      if (wantLanche) slots.splice(slots.includes('tarde') ? slots.indexOf('tarde') + 1 : slots.indexOf('almoco') + 1, 0, 'lanche');
+    }
+    for (const slot of slots) {
+      let r = rankFor(slot, ctx, used);
+      if (!r.length) r = rankFor(slot, ctx, today);
+      if (!r.length) { items.push({ slot, place: null }); continue; }
+      const pl = r[0].p;
+      used.add(pl.id); today.add(pl.id);
+      if (pl.z !== '*') ctx.zone = pl.z;
+      pl.t.forEach(t => { ctx.tags[t] = 1; });
+      items.push({ slot, place: pl });
+    }
+    days.push({ items, pace });
+  }
+  S.plan = { days };
+  if (S.day >= days.length) S.day = 0;
+}
+const usedIds = () => new Set(S.plan.days.flatMap(d => d.items.filter(i => i.place).map(i => i.place.id)));
+
+function why(p) {
+  const ca = p.t.filter(t => D[0].tags.has(t)), cb = p.t.filter(t => D[1].tags.has(t));
+  const both = ca.filter(t => cb.includes(t));
+  const n0 = esc(D[0].name), n1 = esc(D[1].name);
+  if (both.length) return { kind: 'both', badge: 'Os dois curtem', text: 'Os dois gostam de ' + list(both.map(L)) + '.' };
+  if (ca.length && cb.length) return { kind: 'mix', badge: 'Um de cada', text: n0 + ' curte ' + list(ca.map(L)) + ', e ' + n1 + ' curte ' + list(cb.map(L)) + '.' };
+  if (ca.length) return { kind: 'a', badge: 'Para ' + n0, text: 'Combina com ' + list(ca.map(L)) + ', que ' + n0 + ' escolheu.' };
+  if (cb.length) return { kind: 'b', badge: 'Para ' + n1, text: 'Combina com ' + list(cb.map(L)) + ', que ' + n1 + ' escolheu.' };
+  return { kind: 'none', badge: 'Para conhecer', text: 'Uma boa pedida para conhecer a cidade.' };
+}
+function dayTitle(day) {
+  const zs = [...new Set(day.items.filter(i => i.place && i.place.k === 'v' && i.place.z !== '*').map(i => i.place.z))];
+  const base = zs.length ? list(zs.slice(0, 2).map(z => ZONENAME[z])) : 'Dia livre';
+  const extra = day.pace === 0 && !day.items.some(i => i.slot === 'dia') ? ' · tarde livre para descansar' : '';
+  return base + extra;
+}
+
+/* ---------- Telas ---------- */
+const $app = document.getElementById('app');
+function itemHtml(it, di, ii) {
+  const lbl = SLOTLABEL[it.slot];
+  if (!it.place) return `<li class="slot"><span class="slotlabel">${lbl}</span><div class="pcard free"><p>Sem sugestão para este horário. Aproveitem para descansar ou improvisar.</p></div></li>`;
+  const p = it.place, w = why(p);
+  const trip = it.slot === 'dia' ? '<p class="fine">Almoço por lá, em restaurante ou barraca local.</p>' : '';
+  return `<li class="slot"><span class="slotlabel">${lbl}</span><article class="pcard">
+    <div class="ptop"><h3>${esc(p.n)}</h3><span class="badge ${w.kind}">${w.badge}</span></div>
+    <p class="meta">${esc(p.b)} · ${p.k === 'c' ? 'Comer' : 'Visitar'} · ${costLabel(p.c)}</p>
+    <p>${w.text}</p><p class="fine">${esc(p.d)}</p>${trip}
+    <div class="acts"><a class="btn ghost small" href="${mapUrl(p)}" target="_blank" rel="noopener">Ver no mapa</a>
+    ${it.slot === 'dia' ? '' : `<button class="btn ghost small" data-act="swap" data-day="${di}" data-i="${ii}">Trocar sugestão</button>`}</div>
+  </article></li>`;
+}
+function miniHtml(p) {
+  const w = why(p);
+  return `<article class="pcard"><div class="ptop"><h3>${esc(p.n)}</h3><span class="badge ${w.kind}">${w.badge}</span></div>
+    <p class="meta">${esc(p.b)} · ${p.k === 'c' ? 'Comer' : 'Visitar'} · ${costLabel(p.c)}</p>
+    <div class="acts"><a class="btn ghost small" href="${mapUrl(p)}" target="_blank" rel="noopener">Ver no mapa</a></div></article>`;
+}
+
+function viewIntro() {
+  const saved = loadSaved();
+  return `<section class="hero">
+    <svg class="motif" viewBox="0 0 340 110" role="img" aria-label="Sol se pondo sobre o mar">
+      <circle cx="238" cy="78" r="46" style="fill:var(--sun)"/>
+      <rect x="0" y="78" width="340" height="32" style="fill:var(--bg)"/>
+      <path d="M0 86 Q 21 78 42 86 T 84 86 T 126 86 T 168 86 T 210 86 T 252 86 T 294 86 T 336 86" style="fill:none;stroke:var(--a);stroke-width:3;stroke-linecap:round"/>
+      <path d="M0 98 Q 21 90 42 98 T 84 98 T 126 98 T 168 98 T 210 98 T 252 98 T 294 98 T 336 98" style="fill:none;stroke:var(--b);stroke-width:3;stroke-linecap:round;opacity:.7"/>
+    </svg>
+    <p class="eyebrow">Fortaleza, Ceará</p>
+    <h1>Fortaleza a dois</h1>
+    <p class="lead">Cada um responde a algumas perguntas sobre o que gosta. O app cruza as duas respostas e monta um roteiro de lugares para visitar e para comer.</p>
+  </section>
+  <section class="card">
+    <div class="row">
+      <div><strong>Quantos dias de roteiro?</strong><p class="fine">Dá para mudar depois.</p></div>
+      <div class="stepper"><button aria-label="Menos um dia" data-act="days" data-d="-1">−</button><output aria-live="polite">${S.days}</output><button aria-label="Mais um dia" data-act="days" data-d="1">+</button></div>
+    </div>
+    <button class="btn primary" data-act="start">Começar</button>
+    ${saved ? '<button class="btn ghost" data-act="loadSaved">Ver o último roteiro</button>' : ''}
+  </section>
+  <section class="card">
+    <h2>Como funciona</h2>
+    <ol class="how">
+      <li><span>Cada um responde 7 perguntas rápidas, no mesmo aparelho ou em aparelhos diferentes.</span></li>
+      <li><span>O app separa o que os dois curtem do que só um curte.</span></li>
+      <li><span>Vocês recebem um roteiro por dia, com lugares para visitar e comer, e podem trocar o que não agradar.</span></li>
+    </ol>
+    <p class="fine">As respostas não saem deste aparelho.</p>
+  </section>`;
+}
+
+function viewQuiz() {
+  const st = STEPS[S.step], p = S.people[S.cur], total = STEPS.length;
+  let body;
+  if (st.type === 'text') {
+    body = `<fieldset><label class="qtitle" for="nameInput">Como você se chama?</label>
+      <input class="text-in" id="nameInput" type="text" maxlength="40" autocomplete="given-name" value="${esc(p.name)}" placeholder="Seu nome" data-focus></fieldset>`;
+  } else {
+    const sel = st.type === 'single' ? [p[st.id]] : p[st.id];
+    body = `<fieldset><legend class="qtitle" tabindex="-1" data-focus>${st.title}</legend>${st.hint ? `<p class="fine">${st.hint}</p>` : ''}
+      <div class="opts">${st.opts.map(([v, l]) => `<button type="button" class="opt" aria-pressed="${sel.includes(v)}" data-act="opt" data-v="${v}">${l}</button>`).join('')}</div></fieldset>`;
+  }
+  const last = S.step === total - 1;
+  return `<section class="card p${S.cur}">
+    <div class="who"><span class="dot"></span><span>Pessoa ${S.cur + 1} de 2${p.name.trim() && S.step > 0 ? ' · ' + esc(p.name.trim()) : ''}</span></div>
+    <div class="bar" role="progressbar" aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${S.step + 1}"><span style="width:${(S.step + 1) / total * 100}%"></span></div>
+    ${body}
+    <div class="nav"><button class="btn ghost" data-act="back">Voltar</button>
+    <button class="btn primary" id="nextBtn" data-act="next" ${stepValid(st, p) ? '' : 'disabled'}>${last ? 'Concluir' : 'Continuar'}</button></div>
+  </section>`;
+}
+
+function viewHandoff() {
+  const p = S.people[0];
+  return `<section class="card p1">
+    <h2 tabindex="-1" data-focus>Pronto, ${esc(p.name.trim())}!</h2>
+    <p>Agora é a vez da outra pessoa. Passe o aparelho e toque no botão abaixo.</p>
+    <button class="btn primary" data-act="startSecond">Responder neste aparelho</button>
+    <details><summary>Cada um no seu celular?</summary><div>
+      <p class="fine">Copie o seu código e envie para a outra pessoa. Ela responde no celular dela, cola o seu código no final e o roteiro aparece lá. Aqui, cole o código dela.</p>
+      <label class="fine" for="myCode">Seu código</label>
+      <textarea id="myCode" readonly>${encode(p)}</textarea>
+      <button class="btn ghost small" data-act="copyCode" style="justify-self:start">Copiar meu código</button>
+      <label class="fine" for="otherCode">Código da outra pessoa</label>
+      <textarea id="otherCode" placeholder="Cole aqui, começa com FDD1:"></textarea>
+      <button class="btn ghost small" data-act="useCode" style="justify-self:start">Usar este código</button>
+      <p class="err" id="codeErr" role="alert"></p>
+    </div></details>
+    <button class="btn ghost" data-act="back">Voltar</button>
+  </section>`;
+}
+
+function viewResults() {
+  const [a, b] = D;
+  const common = [...a.tags].filter(t => b.tags.has(t));
+  const onlyA = [...a.tags].filter(t => !b.tags.has(t)), onlyB = [...b.tags].filter(t => !a.tags.has(t));
+  const chips = (arr, cls) => arr.length ? `<div class="chips">${arr.map(t => `<span class="chip ${cls}">${L(t)}</span>`).join('')}</div>` : '';
+  const day = S.plan.days[S.day];
+  const used = usedIds();
+  const others = PLACES.filter(p => !used.has(p.id));
+  const mimo = i => others.filter(p => pscore(D[i], p) >= 0.5 && pscore(D[1 - i], p) < 0.3).sort((x, y) => pscore(D[i], y) - pscore(D[i], x)).slice(0, 3);
+  const more = others.filter(p => S.filter === 'all' || p.k === S.filter).map(p => ({ p, s: pair(p).score })).sort((x, y) => y.s - x.s).slice(0, 8).map(x => x.p);
+  const mm = [0, 1].map(mimo);
+  return `<section class="hero">
+    <p class="eyebrow">Roteiro pronto</p>
+    <h1 tabindex="-1" data-focus>${esc(a.name)} e ${esc(b.name)} em Fortaleza</h1>
+  </section>
+  <section class="card">
+    <div class="sumrow"><span class="lbl">Gostos em comum</span>${common.length ? chips(common, 'both') : '<p>Vocês escolheram gostos bem diferentes. O roteiro alterna o que cada um prefere.</p>'}</div>
+    ${onlyA.length ? `<div class="sumrow"><span class="lbl">Só ${esc(a.name)}</span>${chips(onlyA, 'a')}</div>` : ''}
+    ${onlyB.length ? `<div class="sumrow"><span class="lbl">Só ${esc(b.name)}</span>${chips(onlyB, 'b')}</div>` : ''}
+  </section>
+  <section class="section">
+    <div class="row">
+      <div class="stepper"><button aria-label="Menos um dia" data-act="rdays" data-d="-1">−</button><output aria-live="polite">${S.days} ${S.days === 1 ? 'dia' : 'dias'}</output><button aria-label="Mais um dia" data-act="rdays" data-d="1">+</button></div>
+      <div class="seg"><button class="btn ghost small" data-act="shuffle">Variar sugestões</button><button class="btn ghost small" data-act="copyPlan">Copiar roteiro</button></div>
+    </div>
+    <div id="copybox" hidden><p class="fine">Seu navegador não deixou copiar sozinho. Selecione o texto abaixo e copie.</p><textarea id="fallbackBox" readonly></textarea></div>
+    <div class="tabs" role="tablist" aria-label="Dias do roteiro">${S.plan.days.map((_, i) => `<button class="tab" role="tab" aria-selected="${i === S.day}" data-act="day" data-i="${i}">Dia ${i + 1}</button>`).join('')}</div>
+    <div class="section" role="tabpanel">
+      <div><h2>Dia ${S.day + 1}</h2><p class="muted">${esc(dayTitle(day))}</p></div>
+      <ol class="timeline">${day.items.map((it, ii) => itemHtml(it, S.day, ii)).join('')}</ol>
+    </div>
+  </section>
+  ${mm[0].length || mm[1].length ? `<section class="section"><h2>Um mimo para cada um</h2><p class="muted">Ficaram de fora do roteiro porque agradam mais a um do que ao outro. Que tal encaixar um por viagem?</p>
+    ${[0, 1].map(i => mm[i].length ? `<div class="mini"><span class="chip ${i ? 'b' : 'a'}" style="justify-self:start">Para ${esc(D[i].name)}</span>${mm[i].map(miniHtml).join('')}</div>` : '').join('')}</section>` : ''}
+  <section class="section"><h2>Mais ideias</h2>
+    <div class="seg">${[['all', 'Tudo'], ['v', 'Visitar'], ['c', 'Comer']].map(([v, l]) => `<button class="tab" aria-pressed="${S.filter === v}" data-act="filter" data-v="${v}" ${S.filter === v ? 'style="background:var(--ink);border-color:var(--ink);color:var(--bg)"' : ''}>${l}</button>`).join('')}</div>
+    <div class="mini">${more.map(miniHtml).join('') || '<p class="muted">Todas as ideias já entraram no roteiro.</p>'}</div>
+  </section>
+  <p class="note">Horários, preços e funcionamento mudam. Confirme antes de ir, principalmente em feriados e fins de semana. Os valores em R$ são uma referência: R$ é mais barato e R$$$ é mais caro.</p>
+  <div class="row"><button class="btn ghost" data-act="restart">Começar de novo</button></div>`;
+}
+
+function render(top = true) {
+  const v = { intro: viewIntro, quiz: viewQuiz, handoff: viewHandoff, results: viewResults }[S.screen];
+  $app.innerHTML = v();
+  if (top) { window.scrollTo(0, 0); const f = $app.querySelector('[data-focus]'); if (f && S.screen !== 'intro') f.focus({ preventScroll: true }); }
+}
+
+/* ---------- Ações ---------- */
+function toast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 1800);
+}
+async function copyText(text, onFail) {
+  try { await navigator.clipboard.writeText(text); toast('Copiado'); }
+  catch (e) { onFail && onFail(); }
+}
+function planText() {
+  const out = ['Roteiro em Fortaleza: ' + D[0].name + ' e ' + D[1].name, ''];
+  S.plan.days.forEach((d, i) => {
+    out.push('Dia ' + (i + 1) + ' (' + dayTitle(d) + ')');
+    d.items.forEach(it => out.push('- ' + SLOTLABEL[it.slot] + ': ' + (it.place ? it.place.n + ' (' + it.place.b + ')' : 'livre')));
+    out.push('');
+  });
+  return out.join('\n').trim();
+}
+function finish() {
+  D = S.people.map(derive); S.seed = 0; S.day = 0; S.filter = 'all'; generate(); save(); S.screen = 'results'; render();
+}
+function validNow() { return stepValid(STEPS[S.step], S.people[S.cur]); }
+
+const act = {
+  days(el) { S.days = Math.min(5, Math.max(1, S.days + +el.dataset.d)); render(false); },
+  start() { S.people = [blank(), blank()]; S.cur = 0; S.step = 0; S.screen = 'quiz'; render(); },
+  loadSaved() { const r = loadSaved(); if (!r) return; S.people = r.people; S.days = r.days; S.seed = r.seed; D = S.people.map(derive); S.day = 0; S.filter = 'all'; generate(); S.screen = 'results'; render(); },
+  opt(el) {
+    const st = STEPS[S.step], p = S.people[S.cur], v = el.dataset.v;
+    if (st.type === 'single') p[st.id] = v;
+    else {
+      const arr = p[st.id], i = arr.indexOf(v);
+      if (i >= 0) arr.splice(i, 1);
+      else {
+        if (v === 'nada') arr.length = 0;
+        else if (arr.includes('nada')) arr.splice(arr.indexOf('nada'), 1);
+        arr.push(v);
+      }
+    }
+    render(false);
+  },
+  next() {
+    if (!validNow()) return;
+    if (S.step < STEPS.length - 1) { S.step++; render(); return; }
+    if (S.cur === 0) { S.screen = 'handoff'; render(); } else finish();
+  },
+  back() {
+    if (S.screen === 'handoff') { S.screen = 'quiz'; S.cur = 0; S.step = STEPS.length - 1; render(); return; }
+    if (S.step > 0) { S.step--; render(); return; }
+    if (S.cur === 1) { S.screen = 'handoff'; render(); return; }
+    S.screen = 'intro'; render();
+  },
+  startSecond() { S.cur = 1; S.step = 0; S.screen = 'quiz'; render(); },
+  copyCode() { const t = document.getElementById('myCode'); copyText(t.value, () => { t.select(); toast('Selecione e copie'); }); },
+  useCode() {
+    const p = decode(document.getElementById('otherCode').value);
+    if (!p) { document.getElementById('codeErr').textContent = 'Esse código não é válido. Confira se foi copiado inteiro, começando com FDD1:'; return; }
+    S.people[1] = p; finish();
+  },
+  rdays(el) { S.days = Math.min(5, Math.max(1, S.days + +el.dataset.d)); generate(); save(); render(false); },
+  shuffle() { S.seed = (S.seed || 0) + 1; generate(); save(); render(false); toast('Sugestões atualizadas'); },
+  day(el) { S.day = +el.dataset.i; render(false); },
+  filter(el) { S.filter = el.dataset.v; render(false); },
+  swap(el) {
+    const di = +el.dataset.day, ii = +el.dataset.i, it = S.plan.days[di].items[ii];
+    if (!it || !it.place) return;
+    const used = usedIds(); used.delete(it.place.id);
+    const opts = candidates(it.slot, used).sort((x, y) => (pair(y).score + slotBonus(it.slot)) - (pair(x).score + slotBonus(it.slot)));
+    if (opts.length < 2) { toast('Não há outra sugestão para este horário'); return; }
+    const idx = opts.findIndex(x => x.id === it.place.id);
+    it.place = opts[(idx + 1) % opts.length];
+    render(false);
+  },
+  copyPlan() {
+    const text = planText();
+    copyText(text, () => { const box = document.getElementById('copybox'); box.hidden = false; const ta = document.getElementById('fallbackBox'); ta.value = text; ta.focus(); ta.select(); });
+  },
+  restart() { S.screen = 'intro'; S.people = [blank(), blank()]; S.cur = 0; S.step = 0; render(); }
+};
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (el && act[el.dataset.act]) act[el.dataset.act](el, e);
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'nameInput') {
+    S.people[S.cur].name = e.target.value;
+    const n = document.getElementById('nextBtn'); if (n) n.disabled = !validNow();
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'nameInput' && validNow()) { e.preventDefault(); act.next(); }
+});
+
+render(false);
+</script>
+
+</body></html>

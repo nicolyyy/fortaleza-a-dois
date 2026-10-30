@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap">
-<style>
+<style id="appcss">
 /* Layout: uma coluna estreita, uma tela por vez. Motivo: sol se pondo sobre o mar.
    Cores: --a e --b identificam cada pessoa; --accent marca o que os dois curtem. */
 :root {
@@ -116,6 +116,16 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .note { font-size: .875rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
 #toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--ink); color: var(--bg); padding: .6rem 1.1rem; border-radius: 12px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 20; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+.code { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 14vw, 4rem); letter-spacing: .18em; text-indent: .18em; line-height: 1; padding: .35em .1em; text-align: center; border: 2px dashed var(--line); border-radius: 16px; background: var(--soft); }
+.stat { display: flex; align-items: center; gap: 10px; }
+.stat .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); flex: none; }
+.stat.on .dot { background: var(--accent); }
+@media print {
+  body { background: #fff; color: #000; padding: 0; }
+  .no-print, #toast { display: none !important; }
+  .pcard { break-inside: avoid; }
+  a.btn::after { content: " (" attr(href) ")"; font-size: .7rem; word-break: break-all; }
+}
 @media (max-width: 520px) {
   .slot { grid-template-columns: 1fr; gap: 6px; }
   .slotlabel { padding-top: 0; }
@@ -244,7 +254,36 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const list = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1];
 const L = t => TAGLABEL[t] || t;
 const mapUrl = p => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.q || (p.n + ', Fortaleza'));
-const costLabel = c => 'R' + '$'.repeat(c);
+/* Estimativas em reais, por pessoa, sem transporte até a cidade e sem hospedagem. São faixas aproximadas. */
+const PRICE = {
+  ponte: [0, 0], dragao: [0, 30], feirinha: [0, 60], mercado: [0, 60], catedral: [0, 0], theatro: [0, 20], passeio: [0, 0], forte: [0, 0], museu: [0, 20],
+  coco: [0, 0], beirawalk: [0, 25], futuro: [30, 100], jangada: [40, 120], riomar: [0, 80], cinesl: [0, 40], tabajaras: [40, 120],
+  cumbuco: [200, 450], beachpark: [400, 700], morro: [170, 350], canoa: [200, 450],
+  tapioca: [15, 35], mpeixes: [70, 140], barracas: [80, 180], cocobambu: [120, 250], estoril: [60, 130], varjota: [60, 130], dragaobar: [50, 110],
+  japa: [80, 180], massas: [60, 130], sorvete: [12, 30], cafe: [25, 60], lagosta: [180, 400], carnesol: [40, 80], quiosque: [8, 20], rooftop: [100, 250], burger: [50, 100]
+};
+const rng = p => PRICE[p.id] || [[0, 30], [30, 100], [100, 250]][p.c - 1];
+const brl = n => 'R$ ' + n.toLocaleString('pt-BR');
+const brlR = n => brl(Math.round(n / 10) * 10);
+function priceTxt(p) {
+  const r = rng(p);
+  if (r[1] === 0) return 'Gratuito';
+  const range = r[0] === 0 ? 'Até ' + brl(r[1]) : brl(r[0]) + ' a ' + brl(r[1]);
+  return range + ' por pessoa' + (p.s[0] === 'dia' ? ', com almoço' : '');
+}
+function sumDays(days) {
+  let mn = 0, mx = 0;
+  days.forEach(d => d.items.forEach(it => { if (it.place) { const r = rng(it.place); mn += r[0]; mx += r[1]; } }));
+  return [mn, mx];
+}
+function dayCostTxt(day) {
+  const [mn, mx] = sumDays([day]);
+  return 'Estimativa do dia: ' + brlR(mn) + ' a ' + brlR(mx) + ' por pessoa, ou ' + brlR(mn * 2) + ' a ' + brlR(mx * 2) + ' para os dois.';
+}
+function totalCostTxt() {
+  const [mn, mx] = sumDays(S.plan.days), n = S.plan.days.length;
+  return 'Estimativa total (' + n + (n === 1 ? ' dia' : ' dias') + '): ' + brlR(mn) + ' a ' + brlR(mx) + ' por pessoa, ou ' + brlR(mn * 2) + ' a ' + brlR(mx * 2) + ' para os dois.';
+}
 
 function stepValid(st, p) {
   if (st.id === 'name') return p.name.trim().length > 0;
@@ -359,6 +398,7 @@ function generate() {
   }
   S.plan = { days };
   if (S.day >= days.length) S.day = 0;
+  syncPlan();
 }
 const usedIds = () => new Set(S.plan.days.flatMap(d => d.items.filter(i => i.place).map(i => i.place.id)));
 
@@ -381,23 +421,23 @@ function dayTitle(day) {
 
 /* ---------- Telas ---------- */
 const $app = document.getElementById('app');
-function itemHtml(it, di, ii) {
+function itemHtml(it, di, ii, share) {
   const lbl = SLOTLABEL[it.slot];
   if (!it.place) return `<li class="slot"><span class="slotlabel">${lbl}</span><div class="pcard free"><p>Sem sugestão para este horário. Aproveitem para descansar ou improvisar.</p></div></li>`;
   const p = it.place, w = why(p);
   const trip = it.slot === 'dia' ? '<p class="fine">Almoço por lá, em restaurante ou barraca local.</p>' : '';
   return `<li class="slot"><span class="slotlabel">${lbl}</span><article class="pcard">
     <div class="ptop"><h3>${esc(p.n)}</h3><span class="badge ${w.kind}">${w.badge}</span></div>
-    <p class="meta">${esc(p.b)} · ${p.k === 'c' ? 'Comer' : 'Visitar'} · ${costLabel(p.c)}</p>
+    <p class="meta">${esc(p.b)} · ${p.k === 'c' ? 'Comer' : 'Visitar'} · ${priceTxt(p)}</p>
     <p>${w.text}</p><p class="fine">${esc(p.d)}</p>${trip}
     <div class="acts"><a class="btn ghost small" href="${mapUrl(p)}" target="_blank" rel="noopener">Ver no mapa</a>
-    ${it.slot === 'dia' ? '' : `<button class="btn ghost small" data-act="swap" data-day="${di}" data-i="${ii}">Trocar sugestão</button>`}</div>
+    ${it.slot === 'dia' || share || RO() ? '' : `<button class="btn ghost small" data-act="swap" data-day="${di}" data-i="${ii}">Trocar sugestão</button>`}</div>
   </article></li>`;
 }
 function miniHtml(p) {
   const w = why(p);
   return `<article class="pcard"><div class="ptop"><h3>${esc(p.n)}</h3><span class="badge ${w.kind}">${w.badge}</span></div>
-    <p class="meta">${esc(p.b)} · ${p.k === 'c' ? 'Comer' : 'Visitar'} · ${costLabel(p.c)}</p>
+    <p class="meta">${esc(p.b)} · ${p.k === 'c' ? 'Comer' : 'Visitar'} · ${priceTxt(p)}</p>
     <div class="acts"><a class="btn ghost small" href="${mapUrl(p)}" target="_blank" rel="noopener">Ver no mapa</a></div></article>`;
 }
 
@@ -419,7 +459,10 @@ function viewIntro() {
       <div><strong>Quantos dias de roteiro?</strong><p class="fine">Dá para mudar depois.</p></div>
       <div class="stepper"><button aria-label="Menos um dia" data-act="days" data-d="-1">−</button><output aria-live="polite">${S.days}</output><button aria-label="Mais um dia" data-act="days" data-d="1">+</button></div>
     </div>
-    <button class="btn primary" data-act="start">Começar</button>
+    <strong>Como vocês vão responder?</strong>
+    <button class="btn primary" data-act="start">Nós dois, neste celular</button>
+    <button class="btn ghost" data-act="remoteStart">Cada um no seu celular</button>
+    <p class="fine">No segundo modo, uma pessoa cria uma sala e passa um código de 4 números para a outra. Não precisa copiar nem colar nada.</p>
     ${saved ? '<button class="btn ghost" data-act="loadSaved">Ver o último roteiro</button>' : ''}
   </section>
   <section class="card">
@@ -429,7 +472,7 @@ function viewIntro() {
       <li><span>O app separa o que os dois curtem do que só um curte.</span></li>
       <li><span>Vocês recebem um roteiro por dia, com lugares para visitar e comer, e podem trocar o que não agradar.</span></li>
     </ol>
-    <p class="fine">As respostas não saem deste aparelho.</p>
+    <p class="fine">Respondendo no mesmo celular, nada sai do aparelho. Na sala, as respostas passam só para quem entrar com o seu código e somem quando a página é fechada.</p>
   </section>`;
 }
 
@@ -446,7 +489,7 @@ function viewQuiz() {
   }
   const last = S.step === total - 1;
   return `<section class="card p${S.cur}">
-    <div class="who"><span class="dot"></span><span>Pessoa ${S.cur + 1} de 2${p.name.trim() && S.step > 0 ? ' · ' + esc(p.name.trim()) : ''}</span></div>
+    <div class="who"><span class="dot"></span><span>${S.remote ? 'Suas respostas' : 'Pessoa ' + (S.cur + 1) + ' de 2'}${p.name.trim() && S.step > 0 ? ' · ' + esc(p.name.trim()) : ''}</span></div>
     <div class="bar" role="progressbar" aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${S.step + 1}"><span style="width:${(S.step + 1) / total * 100}%"></span></div>
     ${body}
     <div class="nav"><button class="btn ghost" data-act="back">Voltar</button>
@@ -460,20 +503,33 @@ function viewHandoff() {
     <h2 tabindex="-1" data-focus>Pronto, ${esc(p.name.trim())}!</h2>
     <p>Agora é a vez da outra pessoa. Passe o aparelho e toque no botão abaixo.</p>
     <button class="btn primary" data-act="startSecond">Responder neste aparelho</button>
-    <details><summary>Cada um no seu celular?</summary><div>
-      <p class="fine">Copie o seu código e envie para a outra pessoa. Ela responde no celular dela, cola o seu código no final e o roteiro aparece lá. Aqui, cole o código dela.</p>
-      <label class="fine" for="myCode">Seu código</label>
-      <textarea id="myCode" readonly>${encode(p)}</textarea>
-      <button class="btn ghost small" data-act="copyCode" style="justify-self:start">Copiar meu código</button>
-      <label class="fine" for="otherCode">Código da outra pessoa</label>
-      <textarea id="otherCode" placeholder="Cole aqui, começa com FDD1:"></textarea>
-      <button class="btn ghost small" data-act="useCode" style="justify-self:start">Usar este código</button>
-      <p class="err" id="codeErr" role="alert"></p>
-    </div></details>
     <button class="btn ghost" data-act="back">Voltar</button>
   </section>`;
 }
 
+function summaryHtml() {
+  const [a, b] = D;
+  const common = [...a.tags].filter(t => b.tags.has(t));
+  const onlyA = [...a.tags].filter(t => !b.tags.has(t)), onlyB = [...b.tags].filter(t => !a.tags.has(t));
+  const chips = (arr, cls) => arr.length ? `<div class="chips">${arr.map(t => `<span class="chip ${cls}">${L(t)}</span>`).join('')}</div>` : '';
+  return `<section class="card">
+    <div class="sumrow"><span class="lbl">Gostos em comum</span>${common.length ? chips(common, 'both') : '<p>Vocês escolheram gostos bem diferentes. O roteiro alterna o que cada um prefere.</p>'}</div>
+    ${onlyA.length ? `<div class="sumrow"><span class="lbl">Só ${esc(a.name)}</span>${chips(onlyA, 'a')}</div>` : ''}
+    ${onlyB.length ? `<div class="sumrow"><span class="lbl">Só ${esc(b.name)}</span>${chips(onlyB, 'b')}</div>` : ''}
+    <div class="sumrow"><span class="lbl">Quanto vai custar</span><p>${totalCostTxt()}</p><p class="fine">Valores aproximados, em reais, por pessoa. Não incluem hospedagem, passagem, transporte até os lugares nem bebidas e extras.</p></div>
+  </section>`;
+}
+function buildShareHtml() {
+  const css = document.getElementById('appcss').textContent;
+  const days = S.plan.days.map((d, i) => `<section class="section"><div><h2>Dia ${i + 1}</h2><p class="muted">${esc(dayTitle(d))}</p><p class="fine">${dayCostTxt(d)}</p></div><ol class="timeline">${d.items.map((it, ii) => itemHtml(it, i, ii, true)).join('')}</ol></section>`).join('');
+  const date = new Date().toLocaleDateString('pt-BR');
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Roteiro em Fortaleza: ${esc(D[0].name)} e ${esc(D[1].name)}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap"><style>${css}</style></head><body><main class="wrap">
+  <section class="hero"><p class="eyebrow">Fortaleza, Ceará · ${date}</p><h1>${esc(D[0].name)} e ${esc(D[1].name)} em Fortaleza</h1></section>
+  ${summaryHtml()}${days}
+  <p class="note">Horários, preços e funcionamento mudam. Confirme antes de ir, principalmente em feriados e fins de semana. Os links abrem cada lugar no Google Maps. Os valores são estimativas aproximadas, por pessoa, e podem variar bastante.</p>
+  <div class="row no-print"><button class="btn ghost" onclick="window.print()">Imprimir ou salvar em PDF</button></div>
+</main></body></html>`;
+}
 function viewResults() {
   const [a, b] = D;
   const common = [...a.tags].filter(t => b.tags.has(t));
@@ -489,20 +545,17 @@ function viewResults() {
     <p class="eyebrow">Roteiro pronto</p>
     <h1 tabindex="-1" data-focus>${esc(a.name)} e ${esc(b.name)} em Fortaleza</h1>
   </section>
-  <section class="card">
-    <div class="sumrow"><span class="lbl">Gostos em comum</span>${common.length ? chips(common, 'both') : '<p>Vocês escolheram gostos bem diferentes. O roteiro alterna o que cada um prefere.</p>'}</div>
-    ${onlyA.length ? `<div class="sumrow"><span class="lbl">Só ${esc(a.name)}</span>${chips(onlyA, 'a')}</div>` : ''}
-    ${onlyB.length ? `<div class="sumrow"><span class="lbl">Só ${esc(b.name)}</span>${chips(onlyB, 'b')}</div>` : ''}
-  </section>
+  ${summaryHtml()}
   <section class="section">
     <div class="row">
-      <div class="stepper"><button aria-label="Menos um dia" data-act="rdays" data-d="-1">−</button><output aria-live="polite">${S.days} ${S.days === 1 ? 'dia' : 'dias'}</output><button aria-label="Mais um dia" data-act="rdays" data-d="1">+</button></div>
-      <div class="seg"><button class="btn ghost small" data-act="shuffle">Variar sugestões</button><button class="btn ghost small" data-act="copyPlan">Copiar roteiro</button></div>
+      ${RO() ? `<p class="fine">${esc(D[0].name)} criou a sala e controla os dias e as trocas. O que mudar aparece aqui na hora.</p>` : `<div class="stepper"><button aria-label="Menos um dia" data-act="rdays" data-d="-1">−</button><output aria-live="polite">${S.days} ${S.days === 1 ? 'dia' : 'dias'}</output><button aria-label="Mais um dia" data-act="rdays" data-d="1">+</button></div>`}
+      <div class="seg"><button class="btn primary small" data-act="saveFile">Salvar roteiro</button><button class="btn ghost small" data-act="copyPlan">Copiar com links</button>${RO() ? '' : '<button class="btn ghost small" data-act="shuffle">Variar sugestões</button>'}</div>
     </div>
+    <p class="fine">Salvar roteiro gera um arquivo com este mesmo visual e os links do mapa. Ele abre em qualquer celular ou computador, dá para enviar por WhatsApp ou e-mail e, de lá, imprimir ou salvar em PDF.</p>
     <div id="copybox" hidden><p class="fine">Seu navegador não deixou copiar sozinho. Selecione o texto abaixo e copie.</p><textarea id="fallbackBox" readonly></textarea></div>
     <div class="tabs" role="tablist" aria-label="Dias do roteiro">${S.plan.days.map((_, i) => `<button class="tab" role="tab" aria-selected="${i === S.day}" data-act="day" data-i="${i}">Dia ${i + 1}</button>`).join('')}</div>
     <div class="section" role="tabpanel">
-      <div><h2>Dia ${S.day + 1}</h2><p class="muted">${esc(dayTitle(day))}</p></div>
+      <div><h2>Dia ${S.day + 1}</h2><p class="muted">${esc(dayTitle(day))}</p><p class="fine">${dayCostTxt(day)}</p></div>
       <ol class="timeline">${day.items.map((it, ii) => itemHtml(it, S.day, ii)).join('')}</ol>
     </div>
   </section>
@@ -512,12 +565,12 @@ function viewResults() {
     <div class="seg">${[['all', 'Tudo'], ['v', 'Visitar'], ['c', 'Comer']].map(([v, l]) => `<button class="tab" aria-pressed="${S.filter === v}" data-act="filter" data-v="${v}" ${S.filter === v ? 'style="background:var(--ink);border-color:var(--ink);color:var(--bg)"' : ''}>${l}</button>`).join('')}</div>
     <div class="mini">${more.map(miniHtml).join('') || '<p class="muted">Todas as ideias já entraram no roteiro.</p>'}</div>
   </section>
-  <p class="note">Horários, preços e funcionamento mudam. Confirme antes de ir, principalmente em feriados e fins de semana. Os valores em R$ são uma referência: R$ é mais barato e R$$$ é mais caro.</p>
+  <p class="note">Horários, preços e funcionamento mudam. Confirme antes de ir, principalmente em feriados e fins de semana. Os valores são estimativas aproximadas e podem variar bastante conforme a época, o pedido e o local.</p>
   <div class="row"><button class="btn ghost" data-act="restart">Começar de novo</button></div>`;
 }
 
 function render(top = true) {
-  const v = { intro: viewIntro, quiz: viewQuiz, handoff: viewHandoff, results: viewResults }[S.screen];
+  const v = { intro: viewIntro, quiz: viewQuiz, handoff: viewHandoff, results: viewResults, remoteChoose: viewRemoteChoose, room: viewRoom }[S.screen];
   $app.innerHTML = v();
   if (top) { window.scrollTo(0, 0); const f = $app.querySelector('[data-focus]'); if (f && S.screen !== 'intro') f.focus({ preventScroll: true }); }
 }
@@ -532,10 +585,10 @@ async function copyText(text, onFail) {
   catch (e) { onFail && onFail(); }
 }
 function planText() {
-  const out = ['Roteiro em Fortaleza: ' + D[0].name + ' e ' + D[1].name, ''];
+  const out = ['Roteiro em Fortaleza: ' + D[0].name + ' e ' + D[1].name, totalCostTxt(), ''];
   S.plan.days.forEach((d, i) => {
-    out.push('Dia ' + (i + 1) + ' (' + dayTitle(d) + ')');
-    d.items.forEach(it => out.push('- ' + SLOTLABEL[it.slot] + ': ' + (it.place ? it.place.n + ' (' + it.place.b + ')' : 'livre')));
+    out.push('Dia ' + (i + 1) + ' (' + dayTitle(d) + ')'); out.push(dayCostTxt(d));
+    d.items.forEach(it => { out.push('- ' + SLOTLABEL[it.slot] + ': ' + (it.place ? it.place.n + ' (' + it.place.b + ')' : 'livre')); if (it.place) out.push('  ' + mapUrl(it.place)); });
     out.push('');
   });
   return out.join('\n').trim();
@@ -566,15 +619,31 @@ const act = {
   next() {
     if (!validNow()) return;
     if (S.step < STEPS.length - 1) { S.step++; render(); return; }
+    if (S.remote) { remoteDone(); return; }
     if (S.cur === 0) { S.screen = 'handoff'; render(); } else finish();
   },
   back() {
     if (S.screen === 'handoff') { S.screen = 'quiz'; S.cur = 0; S.step = STEPS.length - 1; render(); return; }
     if (S.step > 0) { S.step--; render(); return; }
+    if (S.remote) { S.screen = 'room'; render(); return; }
     if (S.cur === 1) { S.screen = 'handoff'; render(); return; }
     S.screen = 'intro'; render();
   },
   startSecond() { S.cur = 1; S.step = 0; S.screen = 'quiz'; render(); },
+  remoteStart() { S.screen = 'remoteChoose'; render(); },
+  toIntro() { S.screen = 'intro'; render(); },
+  roomCreate() { enterRoom(String(Math.floor(1000 + Math.random() * 9000)), 'host'); },
+  roomJoin() {
+    const v = (document.getElementById('roomCode').value || '').replace(/\D/g, '');
+    if (v.length !== 4) { const e = document.getElementById('roomErr'); if (e) e.textContent = 'Digite os 4 números do código.'; return; }
+    enterRoom(v, 'guest');
+  },
+  remoteQuiz() {
+    S.cur = 0; S.step = 0; S.screen = 'quiz';
+    if (ROOM) ROOM.presence({ status: 'respondendo' }).catch(() => {});
+    render();
+  },
+  exitRoom() { leaveRoom(); S.screen = 'intro'; render(); },
   copyCode() { const t = document.getElementById('myCode'); copyText(t.value, () => { t.select(); toast('Selecione e copie'); }); },
   useCode() {
     const p = decode(document.getElementById('otherCode').value);
@@ -593,14 +662,127 @@ const act = {
     if (opts.length < 2) { toast('Não há outra sugestão para este horário'); return; }
     const idx = opts.findIndex(x => x.id === it.place.id);
     it.place = opts[(idx + 1) % opts.length];
+    syncPlan();
     render(false);
+  },
+  async saveFile() {
+    try {
+      const dl = window.claude && await window.claude.use('downloads');
+      if (!dl) { toast('Salvar arquivo não está disponível aqui. Use Copiar com links.'); return; }
+      await dl.save({ filename: 'roteiro-fortaleza.html', data: buildShareHtml() });
+      toast('Roteiro salvo');
+    } catch (e) {
+      if (e && e.code === 'declined') return;
+      toast('Não foi possível salvar. Use Copiar com links.');
+    }
   },
   copyPlan() {
     const text = planText();
     copyText(text, () => { const box = document.getElementById('copybox'); box.hidden = false; const ta = document.getElementById('fallbackBox'); ta.value = text; ta.focus(); ta.select(); });
   },
-  restart() { S.screen = 'intro'; S.people = [blank(), blank()]; S.cur = 0; S.step = 0; render(); }
+  restart() { leaveRoom(); S.screen = 'intro'; S.people = [blank(), blank()]; S.cur = 0; S.step = 0; render(); }
 };
+
+/* ---------- Cada um no seu celular (sala) ---------- */
+let ROOM = null, offPeers = null;
+const RO = () => !!(S.remote && S.remote.role === 'guest');
+function otherPeer() {
+  if (!ROOM || !S.remote) return null;
+  return ROOM.peers().find(p => !p.sameTab && p.presence && p.presence.app === 'fdd' && p.presence.role !== S.remote.role) || null;
+}
+function serializePlan() { return S.plan.days.map(d => ({ p: d.pace, i: d.items.map(it => [it.slot, it.place ? it.place.id : '']) })); }
+function syncPlan() {
+  if (!ROOM || !S.remote || S.remote.role !== 'host' || !S.remote.done || !S.plan) return;
+  ROOM.presence({ plan: serializePlan(), days: S.days }).catch(() => {});
+}
+function applyPlan(pr) {
+  const days = pr.plan.map(d => ({ pace: d.p, items: d.i.map(([slot, id]) => ({ slot, place: PLACES.find(p => p.id === id) || null })) }));
+  S.plan = { days }; S.days = days.length; if (S.day >= days.length) S.day = 0;
+}
+function leaveRoom() {
+  try { offPeers && offPeers(); ROOM && ROOM.leave(); } catch (e) {}
+  ROOM = null; offPeers = null; S.remote = null;
+}
+function tryComplete() {
+  const R = S.remote;
+  if (!R || !R.done || S.screen !== 'room') return;
+  const o = otherPeer();
+  if (!o || o.presence.status !== 'pronto') return;
+  const theirs = sanitize(o.presence.answers);
+  if (!theirs) return;
+  const mine = S.people[0];
+  if (R.role === 'guest' && !Array.isArray(o.presence.plan)) return;
+  S.people = R.role === 'host' ? [mine, theirs] : [theirs, mine];
+  D = S.people.map(derive); S.day = 0; S.filter = 'all';
+  if (R.role === 'host') { S.seed = 0; generate(); }
+  else { try { applyPlan(o.presence); S.lastPlan = JSON.stringify(o.presence.plan); } catch (e) { return; } }
+  save(); S.screen = 'results'; render();
+}
+function onPeers() {
+  if (!S.remote) return;
+  const o = otherPeer();
+  if (RO() && S.screen === 'results' && o && Array.isArray(o.presence.plan)) {
+    const s = JSON.stringify(o.presence.plan);
+    if (s !== S.lastPlan) { S.lastPlan = s; try { applyPlan(o.presence); render(false); } catch (e) {} }
+  }
+  tryComplete();
+  if (S.screen === 'room') render(false);
+}
+async function remoteDone() {
+  const me = S.people[0];
+  S.remote.done = true; S.screen = 'room'; render();
+  try { await ROOM.presence({ status: 'pronto', name: me.name.trim(), answers: me }); }
+  catch (e) { if (S.remote) S.remote.done = false; toast('Não consegui enviar suas respostas. Tente de novo.'); render(false); return; }
+  tryComplete();
+}
+async function enterRoom(code, role) {
+  const err = m => { const e = document.getElementById('roomErr'); if (e) e.textContent = m; };
+  err('Conectando…');
+  leaveRoom();
+  let r = null;
+  try { r = window.claude && await window.claude.use('room'); } catch (e) {}
+  if (!r) { err('Este modo só funciona quando a página é aberta pelo link do Claude, com o login feito. Use "Nós dois, neste celular".'); return; }
+  try {
+    const room = await r.join('sala-' + code);
+    ROOM = room; S.remote = { code, role, done: false }; S.people = [blank(), blank()]; S.cur = 0; S.step = 0; S.plan = null; S.lastPlan = '';
+    offPeers = room.onPeers(onPeers, () => toast('A conexão com a sala caiu. Volte ao início e entre de novo.'));
+    await room.presence({ app: 'fdd', role, status: 'entrou' });
+    S.screen = 'room'; render();
+  } catch (e) {
+    leaveRoom();
+    err('Não consegui entrar na sala. Confira o código e a internet e tente de novo.');
+  }
+}
+function viewRemoteChoose() {
+  return `<section class="card">
+    <h2 tabindex="-1" data-focus>Cada um no seu celular</h2>
+    <p>Os dois abrem este mesmo link e deixam a página aberta até o roteiro aparecer. Uma pessoa cria a sala e a outra entra com o código.</p>
+    <button class="btn primary" data-act="roomCreate">Criar uma sala</button>
+    <p class="fine">Você recebe um código de 4 números para passar ao seu par.</p>
+    <div style="display:grid;gap:8px;border-top:1px solid var(--line);padding-top:16px">
+      <label for="roomCode"><strong>Já recebeu um código?</strong></label>
+      <input class="text-in" id="roomCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="0000">
+      <button class="btn ghost" data-act="roomJoin">Entrar na sala</button>
+    </div>
+    <p class="err" id="roomErr" role="alert"></p>
+    <button class="btn ghost" data-act="toIntro">Voltar</button>
+  </section>`;
+}
+function viewRoom() {
+  const R = S.remote, o = otherPeer(), st = o && o.presence.status;
+  const oName = o && o.presence.name ? esc(String(o.presence.name).slice(0, 40)) : 'A outra pessoa';
+  const partner = !o ? 'A outra pessoa ainda não entrou na sala' : st === 'pronto' ? oName + ' já respondeu' : st === 'respondendo' ? oName + ' está respondendo' : oName + ' entrou na sala';
+  return `<section class="card p0">
+    <p class="eyebrow">Código da sala</p>
+    <div class="code" tabindex="-1" data-focus>${esc(R.code)}</div>
+    ${R.role === 'host' ? '<p>Passe este código para o seu par. A outra pessoa abre este mesmo link, toca em "Cada um no seu celular" e digita os 4 números em "Entrar na sala".</p>' : '<p>Você entrou na sala. Se o seu par não aparecer, confira se o código está certo.</p>'}
+    <div class="stat ${o ? 'on' : ''}"><span class="dot"></span><span>${partner}</span></div>
+    <div class="stat ${R.done ? 'on' : ''}"><span class="dot"></span><span>${R.done ? 'Suas respostas foram enviadas' : 'Você ainda não respondeu'}</span></div>
+    ${R.done ? '<p class="fine">Deixe esta página aberta. O roteiro aparece sozinho aqui e no outro celular quando os dois terminarem.</p>' : '<button class="btn primary" data-act="remoteQuiz">Responder minhas perguntas</button>'}
+    <button class="btn ghost" data-act="exitRoom">Sair da sala</button>
+  </section>`;
+}
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'roomCode') act.roomJoin(); });
 
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
